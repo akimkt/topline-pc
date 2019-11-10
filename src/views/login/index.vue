@@ -3,7 +3,7 @@
     <div class="login">
       <!--el-form是表单组件-->
       <!--ref是固定属性，每个表单的必须属性  使得可以获取当前的组件对象  this.$refs后期表单校验会使用-->
-      <!--:model,必须属性，名称为model，对表单数据对象进行绑定，作用是要收集表单的全部数据，后期表单校验会使用-->
+      <!--:model,必须属性，名称为model，对表单数据对象进行绑定，作用是要收集表单的全部数据，点击登录提交axios时使用。-->
       <!--label-width设置项目名称宽度，非必须属性已删除-->
       <!-- rules表单验证规则，加上冒号，使得它可以访问data数据， -->
       <el-form ref="lgfRef" :model="lgfm" :rules="loginjy">
