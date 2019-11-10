@@ -15,10 +15,14 @@
         <!-- prop会使得校验规则 与 当前项目联系 放在el-form-item中 建议和子组件的data数据名一样-->
         <el-form-item prop="mobile">
           <!--匿名插槽应用体现el-form-item内部有匿名插槽，el-input 会对应放入-->
-          <el-input v-model="lgfm.mobile" placeholder="请输入手机号码"></el-input>
+          <el-input v-model="lgfm.mobile" placeholder="请输入手机号码">
+            <i slot="prefix" class="el-input__icon iconfont icon-shouji"></i>
+          </el-input>
         </el-form-item>
         <el-form-item prop="code">
-          <el-input v-model="lgfm.code" placeholder="请输入验证码"></el-input>
+          <el-input v-model="lgfm.code" placeholder="请输入验证码">
+            <i slot="prefix" class="el-input__icon iconfont icon-ecurityCode"></i>
+          </el-input>
         </el-form-item>
         <el-form-item style="text-align:left" prop="xieyick">
           <el-checkbox v-model="lgfm.xieyick" style="margin-right:10px;" ></el-checkbox>
@@ -27,19 +31,22 @@
         <el-form-item>
             <!-- type="primary"规定按钮为主要按钮，element组件包内置，蓝色按钮，意为主要的 -->
             <!-- 点击登录执行登录事件程序 -->
-          <el-button type="primary" @click="login()">登录</el-button>
+          <el-button type="primary" @click="login()" :loading="jyload" :disabled="jyload">登录</el-button>
+          <el-button type="primary" @click="reg()">注册</el-button>
         </el-form-item>
       </el-form>
     </div>
   </div>
 </template>
 <script>
+
+import '@/assets/js/gt.js'
+import '@/assets/iconfont/iconfont.css'
 export default {
   name: 'LoginCom',
   data () {
     // 复选框
     var xieyiTest = function (rule, value, callback) {
-      console.log(value)
       // rule:校验规则，一般不用
       // value:当前被校验的信息
       // callback：回调函数，校验成功或失败都需要执行
@@ -51,9 +58,11 @@ export default {
       value ? callback() : callback(new Error('请勾选协议'))
     }
     return {
+      jyload: false, // 点击登录，按钮变不可点击，提示稍等
+      jyObj: null,
       lgfm: {
-        mobile: '',
-        code: '',
+        mobile: '13552399047',
+        code: '246810',
         xieyick: true
       },
       /// / 表单校验:rules和prop结合
@@ -81,22 +90,60 @@ export default {
       // this.$refs.lgfRef对应表单的ref属性获取当前el-from组件
       // el-form组件本身可以调用validate方法，实现对全部表单域项目做校验，返回值valid为布尔值
       this.$refs.lgfRef.validate(valid => {
-        //   如果为真就是校验成功，然后下一步继续发送axios请求
+        //   如果为真就是规则校验成功，然后下一步继续发送axios请求
         if (valid) {
-          // 发送登录账号密码验证请求， this.lgfm是data数据双向绑定的表单数据对象形式，放上去刚好
-          this.$http.post('/authorizations', this.lgfm)
-            .then(res => { // 当执行成功了
-              if (res.data.message === 'OK') {
-                // 缓存获取的token数据存储，方便服务端在需要的时候取出来校验登录状态
-                window.sessionStorage.setItem('userinfo', JSON.stringify(res.data.data))
-                this.$router.push({ name: 'home' })// 进入/home页面，路由中路径和组件匹配新方法中name的用法实例
-              }
+          if (this.jyObj !== null) {
+            return this.jyObj.verify()// 会自动连接上后续的.onSuccess吗？
+          }
+          this.jyload = true
+          // 发送请求，获取人机验证码
+          this.$http.get('/mp/v1_0/captchas/' + this.lgfm.mobile)
+            // 服务器响应回来图形验证码数据
+            .then(res => {
+              let data = res.data.data
+              console.log(data.gt)
+              window.initGeetest({
+                // 以下配置参数来自服务端 SDK
+                gt: data.gt,
+                challenge: data.challenge,
+                offline: !data.success,
+                new_captcha: true,
+                product: 'bind'
+              }, (captchaObj) => {
+                // 调用验证实例 captchaObj 的实例方法
+                captchaObj.onReady(() => {
+                  this.jyObj = captchaObj// 将验证实例对象赋值给
+                  // 调用verify方法显示验证码
+                  captchaObj.verify()
+                  this.jyload = false
+                }).onSuccess(() => {
+                  // 图形校验成功后发送账号密码验证
+                  this.lgjy()
+                }).onError(() => {
+                  // your code
+                })
+              })
             })
             .catch(err => {
-              return this.$message.error('用户名或密码错误' + err)
+              return this.$message.error('获得极验初始校验信息错误：' + err)
             })
+          // this.lgjy()
         }
       })
+    },
+    lgjy () {
+      // 发送登录账号密码验证请求， this.lgfm是data数据双向绑定的表单数据对象形式，放上去刚好
+      this.$http.post('/mp/v1_0/authorizations', this.lgfm)
+        .then(res => { // 当执行成功了
+          if (res.data.message === 'OK') {
+            // 缓存获取的token数据存储，方便服务端在需要的时候取出来校验登录状态
+            window.sessionStorage.setItem('userinfo', JSON.stringify(res.data.data))
+            this.$router.push({ name: 'home' })// 进入/home页面，路由中路径和组件匹配新方法中name的用法实例
+          }
+        })
+        .catch(err => {
+          return this.$message.error('用户名或密码错误' + err)
+        })
     }
   }
 

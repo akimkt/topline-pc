@@ -10,7 +10,7 @@ import ElementUI from 'element-ui'
 // 引入axios
 import axios from 'axios'
 // 设置axios公共跟地址
-axios.defaults.baseURL = 'http://ttapi.research.itcast.cn/mp/v1_0/'
+axios.defaults.baseURL = 'http://ttapi.research.itcast.cn'
 // 把axios通过原型继承的方式配置给Vue，使得组件内部可以直接访问
 // 后期在组件内部就可以通过 this.$http 的方式获得axios对象
 // $http:就是自定义名称，可以为其他
