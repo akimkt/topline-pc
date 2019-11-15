@@ -61,7 +61,7 @@ export default {
       jyload: false, // 点击登录，按钮变不可点击，提示稍等
       jyObj: null,
       lgfm: {
-        mobile: '13552399047',
+        mobile: '13911111111',
         code: '246810',
         xieyick: true
       },
@@ -138,7 +138,7 @@ export default {
           if (res.data.message === 'OK') {
             // 缓存获取的token数据存储，方便服务端在需要的时候取出来校验登录状态
             window.sessionStorage.setItem('userinfo', JSON.stringify(res.data.data))
-            this.$router.push({ name: 'home' })// 进入/home页面，路由中路径和组件匹配新方法中name的用法实例
+            this.$router.push({ name: 'index' })// 进入/home页面，路由中路径和组件匹配新方法中name的用法实例
           }
         })
         .catch(err => {

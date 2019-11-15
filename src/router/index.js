@@ -1,13 +1,30 @@
 import Vue from 'vue'
 // 1.引入路由组件
 import VueRouter from 'vue-router'
+// const routerPush = Router.prototype.push
+// Router.prototype.push = function push (location) {
+//   return routerPush.call(this, location).catch(error => error)
+// }
+
 // 2.注册路由
 Vue.use(VueRouter)
 // 3.设置映射关系
 const routes = [
+  { path: '/', redirect: '/index' },
   { path: '/login', name: 'login', component: () => import('@/views/login') },
-  { path: '/home', name: 'home', component: () => import('@/views/Home') },
-  { path: '/reg', name: 'reg', component: () => import('@/views/reg') }
+  { path: '/reg', name: 'reg', component: () => import('@/views/reg') },
+  { path: '/index',
+    name: 'index',
+    component: () => import('@/views/index'),
+    redirect: '/main',
+    children: [
+      { path: '/main', name: 'main', component: () => import('@/views/main') },
+      { path: '/article', name: 'article', component: () => import('@/views/article') },
+      { path: '/articleadd', name: 'articleadd', component: () => import('@/views/articleadd') }
+    ]
+
+  }
+
 ]
 // 4.创建路由对象
 const router = new VueRouter({
